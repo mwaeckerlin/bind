@@ -18,4 +18,4 @@ ENV DEFAULT_SUBDOMAINS "*"
 ENV DEFAULT_DOMAINS ""
 
 ADD start.sh /start.sh
-CMD start.sh
+CMD /start.sh

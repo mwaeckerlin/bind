@@ -2,6 +2,9 @@ FROM ubuntu
 MAINTAINER mwaeckerlin
 ENV TERM xterm
 
+RUN apt-get update
+RUN apt-get install -y bind9
+
 EXPOSE 53
 
 ENV TTL "3600"
@@ -13,9 +16,6 @@ ENV NEGATIVE_CACHE_TTL "1800"
 ENV DEFAULT_IP ""
 ENV DEFAULT_SUBDOMAINS "*"
 ENV DEFAULT_DOMAINS ""
-
-RUN apt-get update
-RUN apt-get install -y bind9
 
 ADD start.sh /start.sh
 CMD start.sh

@@ -2,23 +2,17 @@
 
 rm /etc/bind/named.conf.local
 
+set -f
 IFS="
 "
 for line in $(env | egrep '^[-.0-9a-z]*=') $(echo ${DEFAULT_DOMAINS} | tr ' ' '\n'); do
-    echo "line=$line"
     base=${line%%=*}
-    echo "base=$base"
     [[ $line =~ = ]] && args=${line#*=} || args=''
-    echo "args=$args"
     ip=${args%%;*}
-    echo "ip=$ip"
     [[ $args =~ \; ]] && args=${args#*;} || args=''
-    echo "args=$args"
     subs=${args%%;*}
-    echo "subs=$subs"
     [[ $args =~ \; ]] && args=${args#*;} || args=''
-    echo "args=$args"
-    echo "... domain: $base on $ip with $subs and $args"
+    echo "... domain: $base"
     cat > "/etc/bind/$base" <<EOF
 \$TTL	${TTL}
 @	IN	SOA	${base}. root.${base}. (

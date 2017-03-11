@@ -7,12 +7,12 @@ IFS="
 "
 for line in $(env | egrep '^[-.0-9a-z]*=') $(echo ${DEFAULT_DOMAINS} | tr ' ' '\n'); do
     base=${line%%=*}
-    [[ $line =~ = ]] && args=${line#*=} || args=''
+    [[ $line =~ = ]] && args=${line#*=} || args="${DEFAULT_IP}"
     ip=${args%%;*}
     [[ $args =~ \; ]] && args=${args#*;} || args=''
     subs=${args%%;*}
     [[ $args =~ \; ]] && args=${args#*;} || args=''
-    echo "... domain: $base"
+    echo "... domain: $base -> $ip"
     cat > "/etc/bind/$base" <<EOF
 \$TTL	${TTL}
 @	IN	SOA	${base}. root.${base}. (
@@ -23,7 +23,7 @@ for line in $(env | egrep '^[-.0-9a-z]*=') $(echo ${DEFAULT_DOMAINS} | tr ' ' '\
 			${NEGATIVE_CACHE_TTL} )	; Negative Cache TTL
 ;
 @	IN	NS	@
-@	IN	A	${ip:-${DEFAULT_IP}}
+@	IN	A	${ip}
 @	IN	MX 10	@
 EOF
     IFS=" "

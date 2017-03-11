@@ -1,6 +1,5 @@
-FROM ubuntu
+FROM mwaeckerlin/ubuntu-base
 MAINTAINER mwaeckerlin
-ENV TERM xterm
 
 RUN apt-get update
 RUN apt-get install -y bind9
@@ -18,4 +17,5 @@ ENV DEFAULT_SUBDOMAINS "*"
 ENV DEFAULT_DOMAINS ""
 
 ADD start.sh /start.sh
-CMD /start.sh
+ENTRYPOINT ["/bin/bash", "-c"]
+CMD ["/start.sh"]

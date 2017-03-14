@@ -48,6 +48,7 @@ zone "${base}" {
 	file "/etc/bind/$base";
 };
 EOF
+    named-checkzone "$base" "/etc/bind/$base"
 done
 
 echo "ready."

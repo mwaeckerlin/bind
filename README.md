@@ -25,7 +25,7 @@ This image has no volumes.
 - `DEFAULT_DOMAINS`: list of domains to be configured with `DEFAULT_SUBDOMAINS` and `DEFAULT_IP` (default "")
 - _`any.url`_: configure any non default url, here _http://any.url_; the value of the variable contains of semicolon separated parts:
     1. the IP address
-    2. list of subdomains, if any subdomain points to a different IP address, just assign it with equal and prefix `A:`, to redirect to another domain, just assign the domain e.g. `-e any.url='123.45.67.89;abc www.main=A:12.34.56.78 dev=www.main def'` configures IP address `123.45.67.89` for _any.url_, _abc.any.url_, _def.any.url_, sets IP address `12.34.56.78` for _www.main.any.url_ and sets _dev_ as `CNAME` entry to _www.main_.
+    2. list of subdomains, if any subdomain points to a different IP address, just assign it with equal and prefix `A:`, to redirect to another domain, just assign the domain e.g. `-e any.url='123.45.67.89;abc www.main=A:12.34.56.78 dev=www.main def'` configures IP address `123.45.67.89` for `any.url`, `abc.any.url`, `def.any.url`, sets IP address `12.34.56.78` for `www.main.any.url` and sets `dev` as `CNAME` entry to `www.main`.
     3. all following semicolon separated lines that are added as is to the DNS record for full flexibility
 
 ### Examples

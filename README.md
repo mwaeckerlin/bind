@@ -42,7 +42,7 @@ This image has no volumes.
 
 This will create the following domain configuration files:
 
-#### domain1.com domain2.com domain3.com ####
+#### domain1.com domain2.com domain3.com
 
 File `domain1.com` (and similar `domain2.com` `domain3.com`) are standard DNS entries configured according to the `DEFAULT_`-variables, but with a different IP address `123.45.67.89`:
 
@@ -61,7 +61,7 @@ $TTL    3600
 *       IN      CNAME   @
 ```
 
-#### domain4.org ####
+#### domain4.org
 
 File `domain4.org` has a special IP address to `123.45.67.89` plus special subdomains where `lists`, `dev.main` and `www.dev.main` have their own IP address `12.34.56.78`. The other subdomains `www`, `something-else`, `friendica`, `main`, `www.main`, `old.main` and `*` athere the domains default IP address `123.45.67.89` and are therefore configured as `CNAME @`. Finally two special lines are appended: `@                   IN      TXT     "v=spf1 a mx ip4:123.45.67.89 ~all"` and `lists               IN      MX 10   domain4.org.`. This results in:
 
@@ -91,7 +91,7 @@ www.dev.main    IN      A       12.34.56.78
 lists               IN      MX 10   domain4.org.
 ```
 
-#### domain4.com ####
+#### domain4.com
 
 File `domain4.com` is very similar to `domain4.org`, except that there are no additional mails and `dev.main` and `www.dev.main` are set as `CNAME` to `dev.main.domain4.org`:
 
@@ -117,7 +117,7 @@ dev.main        IN      CNAME   dev.main.domain4.org.
 www.dev.main    IN      CNAME   dev.main.domain4.org.
 ```
 
-#### domain5.com domain6.com ####
+#### domain5.com domain6.com
 
 The files `domain5.com` and `domain6.com` are configured according to the defaults, so `domain5.com` is:
 

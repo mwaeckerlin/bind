@@ -61,7 +61,7 @@ File `domain1.com` (and similar `domain2.com` `domain3.com`) are standard DNS en
 
 #### domain4.org
 
-File `domain4.org` has a special IP address to `123.45.67.89` plus special subdomains where `lists`, `dev.main` and `www.dev.main` have their own IP address `12.34.56.78`. The other subdomains `www`, `something-else`, `friendica`, `main`, `www.main`, `old.main` and `*` athere the domains default IP address `123.45.67.89` and are therefore configured as `CNAME @`. Finally two special lines are appended: `@                   IN      TXT     "v=spf1 a mx ip4:123.45.67.89 ~all"` and `lists               IN      MX 10   domain4.org.`. This results in:
+File `domain4.org` has a special IP address to `123.45.67.89` plus special subdomains where `lists`, `dev.main` and `www.dev.main` have their own IP address `12.34.56.78`. The other subdomains `www`, `something-else`, `friendica`, `main`, `www.main`, `old.main` and `*` share the domains default IP address `123.45.67.89` and are therefore configured as `CNAME @`. Finally two special lines are appended: `@                   IN      TXT     "v=spf1 a mx ip4:123.45.67.89 ~all"` and `lists               IN      MX 10   domain4.org.`. This results in:
 
     $TTL    3600
     @       IN      SOA     domain4.org. root.domain4.org. (

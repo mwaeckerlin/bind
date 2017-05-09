@@ -46,92 +46,84 @@ This will create the following domain configuration files:
 
 File `domain1.com` (and similar `domain2.com` `domain3.com`) are standard DNS entries configured according to the `DEFAULT_`-variables, but with a different IP address `123.45.67.89`:
 
-```
-$TTL    3600
-@       IN      SOA     domain1.com. root.domain1.com. (
-                        1494319633      ; Serial
-                        3600    ; Refresh
-                        1800    ; Retry
-                        604800  ; Expire
-                        1800 )  ; Negative Cache TTL
-;
-@       IN      NS      @
-@       IN      A       123.45.67.89
-@       IN      MX 10   @
-*       IN      CNAME   @
-```
+    $TTL    3600
+    @       IN      SOA     domain1.com. root.domain1.com. (
+                            1494319633      ; Serial
+                            3600    ; Refresh
+                            1800    ; Retry
+                            604800  ; Expire
+                            1800 )  ; Negative Cache TTL
+    ;
+    @       IN      NS      @
+    @       IN      A       123.45.67.89
+    @       IN      MX 10   @
+    *       IN      CNAME   @
 
 #### domain4.org
 
 File `domain4.org` has a special IP address to `123.45.67.89` plus special subdomains where `lists`, `dev.main` and `www.dev.main` have their own IP address `12.34.56.78`. The other subdomains `www`, `something-else`, `friendica`, `main`, `www.main`, `old.main` and `*` athere the domains default IP address `123.45.67.89` and are therefore configured as `CNAME @`. Finally two special lines are appended: `@                   IN      TXT     "v=spf1 a mx ip4:123.45.67.89 ~all"` and `lists               IN      MX 10   domain4.org.`. This results in:
 
-```
-$TTL    3600
-@       IN      SOA     domain4.org. root.domain4.org. (
-                        1494328812      ; Serial
-                        3600    ; Refresh
-                        1800    ; Retry
-                        604800  ; Expire
-                        1800 )  ; Negative Cache TTL
-;
-@       IN      NS      @
-@       IN      A       123.45.67.89
-@       IN      MX 10   @
-www     IN      CNAME   @
-something-else  IN      CNAME   @
-friendica       IN      CNAME   @
-lists   IN      A       123.45.67.89
-main    IN      CNAME   @
-www.main        IN      CNAME   @
-old.main        IN      CNAME   @
-dev.main        IN      A       12.34.56.78
-www.dev.main    IN      A       12.34.56.78
-*       IN      CNAME   @
-@                   IN      TXT     "v=spf1 a mx ip4:123.45.67.89 ~all"
-lists               IN      MX 10   domain4.org.
-```
+    $TTL    3600
+    @       IN      SOA     domain4.org. root.domain4.org. (
+                            1494328812      ; Serial
+                            3600    ; Refresh
+                            1800    ; Retry
+                            604800  ; Expire
+                            1800 )  ; Negative Cache TTL
+    ;
+    @       IN      NS      @
+    @       IN      A       123.45.67.89
+    @       IN      MX 10   @
+    www     IN      CNAME   @
+    something-else  IN      CNAME   @
+    friendica       IN      CNAME   @
+    lists   IN      A       123.45.67.89
+    main    IN      CNAME   @
+    www.main        IN      CNAME   @
+    old.main        IN      CNAME   @
+    dev.main        IN      A       12.34.56.78
+    www.dev.main    IN      A       12.34.56.78
+    *       IN      CNAME   @
+    @                   IN      TXT     "v=spf1 a mx ip4:123.45.67.89 ~all"
+    lists               IN      MX 10   domain4.org.
 
 #### domain4.com
 
 File `domain4.com` is very similar to `domain4.org`, except that there are no additional mails and `dev.main` and `www.dev.main` are set as `CNAME` to `dev.main.domain4.org`:
 
-```
-$TTL    3600
-@       IN      SOA     domain4.com. root.domain4.com. (
-                        1494319633      ; Serial
-                        3600    ; Refresh
-                        1800    ; Retry
-                        604800  ; Expire
-                        1800 )  ; Negative Cache TTL
-;
-@       IN      NS      @
-@       IN      A       123.45.67.89
-@       IN      MX 10   @
-www     IN      CNAME   @
-main    IN      CNAME   @
-main    IN      CNAME   @
-www.main        IN      CNAME   @
-something-else  IN      CNAME   @
-friendica       IN      CNAME   @
-dev.main        IN      CNAME   dev.main.domain4.org.
-www.dev.main    IN      CNAME   dev.main.domain4.org.
-```
+    $TTL    3600
+    @       IN      SOA     domain4.com. root.domain4.com. (
+                            1494319633      ; Serial
+                            3600    ; Refresh
+                            1800    ; Retry
+                            604800  ; Expire
+                            1800 )  ; Negative Cache TTL
+    ;
+    @       IN      NS      @
+    @       IN      A       123.45.67.89
+    @       IN      MX 10   @
+    www     IN      CNAME   @
+    main    IN      CNAME   @
+    main    IN      CNAME   @
+    www.main        IN      CNAME   @
+    something-else  IN      CNAME   @
+    friendica       IN      CNAME   @
+    dev.main        IN      CNAME   dev.main.domain4.org.
+    www.dev.main    IN      CNAME   dev.main.domain4.org.
 
 #### domain5.com domain6.com
 
 The files `domain5.com` and `domain6.com` are configured according to the defaults, so `domain5.com` is:
 
-```
-$TTL    3600
-@       IN      SOA     domain5.com. root.domain5.com. (
-                        1494328812      ; Serial
-                        3600    ; Refresh
-                        1800    ; Retry
-                        604800  ; Expire
-                        1800 )  ; Negative Cache TTL
-;
-@       IN      NS      @
-@       IN      A       12.34.56.78
-@       IN      MX 10   @
-*       IN      CNAME   @
-```
+    $TTL    3600
+    @       IN      SOA     domain5.com. root.domain5.com. (
+                            1494328812      ; Serial
+                            3600    ; Refresh
+                            1800    ; Retry
+                            604800  ; Expire
+                            1800 )  ; Negative Cache TTL
+    ;
+    @       IN      NS      @
+    @       IN      A       12.34.56.78
+    @       IN      MX 10   @
+    *       IN      CNAME   @

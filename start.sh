@@ -45,7 +45,7 @@ EOF
 $rec
 EOF
     done
-    ${domains[$base]}="${subs:-${DEFAULT_SUBDOMAINS}}"
+    domains[$base]="${subs:-${DEFAULT_SUBDOMAINS}}"
     cat >> /etc/bind/named.conf.local <<EOF
 zone "${base}" {
 	type master;
@@ -68,7 +68,7 @@ done
 if test "${LETSENCRYPT}" != "off"; then
     echo "... setup certificates"
     named
-    for $d in ${!domains[@]}; do
+    for d in ${!domains[@]}; do
         installcerts $d "${domains[$d]}"
     done
     echo "ready."

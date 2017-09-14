@@ -2,6 +2,8 @@
 
 Configures a bind DNS server with IP address and MX records. On one hand, it is very easy to configure a large set of different URLs with common subdomains to the same IP address. On the other hand, it is flexible enough to handle special cases. It always adds a default MX record.
 
+Automatically gets certificates from Let's Encrypt for all configured domains and subdomains.
+
 ## Configuration
 
 ### Port
@@ -10,7 +12,7 @@ DNS service runs on port 53.
 
 ### Volumes
 
-This image has no volumes.
+Certificates in: `/etc/letsencrypt`
 
 ### Variables
 
@@ -27,6 +29,9 @@ This image has no volumes.
     1. the IP address
     2. list of subdomains, if any subdomain points to a different IP address, just assign it with equal and prefix `A:`, to redirect to another domain, just assign the domain e.g. `-e any.url='123.45.67.89;abc www.main=A:12.34.56.78 dev=www.main def'` configures IP address `123.45.67.89` for `any.url`, `abc.any.url`, `def.any.url`, sets IP address `12.34.56.78` for `www.main.any.url` and sets `dev` as `CNAME` entry to `www.main`.
     3. all following semicolon separated lines that are added as is to the DNS record for full flexibility
+ - `LETSENCRYPT`: Set environment variable `LETSENCRYPT` to:
+     - `on`: enable certificate download (default)
+     - `off`: do not download certificates
 
 ### Examples
 

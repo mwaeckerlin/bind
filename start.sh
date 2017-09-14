@@ -1,6 +1,10 @@
 #! /bin/bash
 
+. /letsencrypt-config.sh
+
 rm /etc/bind/named.conf.local
+
+declare -A domains
 
 set -f
 IFS="
@@ -41,6 +45,7 @@ EOF
 $rec
 EOF
     done
+    ${domains[$base]}="${subs:-${DEFAULT_SUBDOMAINS}}"
     cat >> /etc/bind/named.conf.local <<EOF
 zone "${base}" {
 	type master;
@@ -51,5 +56,15 @@ EOF
     named-checkzone "$base" "/etc/bind/$base"
 done
 
-echo "ready."
-named -f
+if test "${LETSENCRYPT}" != "off"; then
+    echo "... setup certificates"
+    named
+    for $d in ${!domains[@]}; do
+        installcerts $d "${domains[$d]}"
+    done
+    echo "ready."
+    /start.letsencrypt.sh
+else
+    echo "ready."
+    named -f
+fi

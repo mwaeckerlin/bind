@@ -4,7 +4,7 @@ MAINTAINER mwaeckerlin
 RUN apt-get update
 RUN apt-get install -y bind9
 
-EXPOSE 53/udp
+EXPOSE 53
 
 ENV TTL "3600"
 ENV SERIAL ""

@@ -15,6 +15,7 @@ ENV NEGATIVE_CACHE_TTL "1800"
 ENV DEFAULT_IP ""
 ENV DEFAULT_SUBDOMAINS "www * www.*"
 ENV DEFAULT_DOMAINS ""
+ENV TRANSFER ""
 
 ADD start.sh /start.sh
 ENTRYPOINT ["/bin/bash", "-c"]

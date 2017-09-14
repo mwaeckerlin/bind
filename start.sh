@@ -50,6 +50,15 @@ EOF
 zone "${base}" {
 	type master;
 	allow-query { any; };
+EOF
+    if test -n "$TRANSFER"; then
+        cat >> /etc/bind/named.conf.local <<EOF
+	notify yes;
+	also-notify { ${TRANSFER%;}; };
+	allow-transfer { ${TRANSFER%;}; };
+EOF
+    fi
+    cat >> /etc/bind/named.conf.local <<EOF
 	file "/etc/bind/$base";
 };
 EOF

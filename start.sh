@@ -13,6 +13,7 @@ for line in $(env | egrep '^[-.0-9a-z]*=') $(echo ${DEFAULT_DOMAINS} | tr ' ' '\
     base=${line%%=*}
     [[ $line =~ = ]] && args=${line#*=} || args="${DEFAULT_IP}"
     ip=${args%%;*}
+    ip=${ip:-${DEFAULT_IP}}
     [[ $args =~ \; ]] && args=${args#*;} || args=''
     subs=${args%%;*}
     [[ $args =~ \; ]] && args=${args#*;} || args=''
@@ -73,6 +74,7 @@ if test "${LETSENCRYPT}" != "off"; then
     done
     echo "ready."
     /start.letsencrypt.sh
+    sleep infinity
 else
     echo "ready."
     named -f

@@ -1,10 +1,7 @@
-FROM mwaeckerlin/letsencrypt
+FROM mwaeckerlin/base
 MAINTAINER mwaeckerlin
 
-RUN apt-get update
-RUN apt-get install -y bind9
-
-EXPOSE 53
+EXPOSE 53/udp
 
 ENV TTL "3600"
 ENV SERIAL ""
@@ -16,7 +13,10 @@ ENV DEFAULT_IP ""
 ENV DEFAULT_SUBDOMAINS "www"
 ENV DEFAULT_DOMAINS ""
 ENV TRANSFER ""
+ENV SEVERITY "warning"
 
+ENV CONTAINERNAME "bind"
+
+RUN $PKG_INSTALL bind bind-tools \
+ && $ALLOW_USER /etc/bind /var/bind
 ADD start.sh /start.sh
-ENTRYPOINT ["/bin/bash", "-c"]
-CMD ["/start.sh"]

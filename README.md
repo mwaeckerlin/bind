@@ -10,10 +10,6 @@ Automatically gets certificates from Let's Encrypt for all configured domains an
 
 DNS service runs on port 53.
 
-### Volumes
-
-Certificates in: `/etc/letsencrypt`
-
 ### Variables
 
 - `TTL`: time to live in seconds (default "3600")
@@ -30,9 +26,6 @@ Certificates in: `/etc/letsencrypt`
     2. list of subdomains, if any subdomain points to a different IP address, just assign it with equal and prefix `A:`, to redirect to another domain, just assign the domain e.g. `-e any.url='123.45.67.89;abc www.main=A:12.34.56.78 dev=www.main def'` configures IP address `123.45.67.89` for `any.url`, `abc.any.url`, `def.any.url`, sets IP address `12.34.56.78` for `www.main.any.url` and sets `dev` as `CNAME` entry to `www.main`.
     3. all following semicolon separated lines that are added as is to the DNS record for full flexibility
  - `TRANSFER`: IP address to allow DNS transfer (master to secondary)
- - `LETSENCRYPT`: Set environment variable `LETSENCRYPT` to:
-     - `on`: enable certificate download (default)
-     - `off`: do not download certificates
 
 ### Examples
 

@@ -1,4 +1,4 @@
-FROM mwaeckerlin/letsencrypt
+FROM mwaeckerlin/ubuntu-base
 MAINTAINER mwaeckerlin
 
 RUN apt-get update

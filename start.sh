@@ -79,5 +79,5 @@ if test "${LETSENCRYPT}" != "off"; then
     sleep infinity
 else
     echo "ready."
-    named -f -L /dev/stdout -d 6
+    named -f -n 1 -L /dev/stdout -d 10
 fi

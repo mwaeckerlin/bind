@@ -1,6 +1,8 @@
 #! /bin/bash
 
-. /letsencrypt-config.sh
+if test -e /letsencrypt-config.sh; then
+    . /letsencrypt-config.sh
+fi
 
 rm /etc/bind/named.conf.local
 
@@ -77,5 +79,5 @@ if test "${LETSENCRYPT}" != "off"; then
     sleep infinity
 else
     echo "ready."
-    named -f
+    named -f -L /dev/stdout -d 6
 fi

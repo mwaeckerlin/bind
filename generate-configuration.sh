@@ -1,6 +1,16 @@
 #!/bin/sh -e
 
-#. /letsencrypt-config.sh
+if test -e ./domains.sh; then
+  . ./domains.sh
+fi
+
+# required default values
+TTL=${TTL:-'3600'}
+REFRESH=${REFRESH:-'3600'}
+RETRY=${RETRY:-'1800'}
+EXPIRE=${EXPIRE:-'604800'}
+NEGATIVE_CACHE_TTL=${NEGATIVE_CACHE_TTL:-'1800'}
+SEVERITY=${SEVERITY:-'warning'}
 
 ! test -e /etc/bind/named.conf.local || rm /etc/bind/named.conf.local
 
@@ -23,7 +33,8 @@ logging {
 
 options {
   directory "/var/bind";
-  listen-on port 53 { any; };
+  pid-file "/var/run/named/named.pid";
+  listen-on port 9953 { any; };
   listen-on-v6 { none; };
 };
 
@@ -31,12 +42,13 @@ include "/etc/bind/named.conf.local";
 
 EOF
 
-#declare -A domains
-
 set -f
 IFS="
 "
-for line in $(env | egrep '^[-.0-9a-z]*=') $(echo ${DEFAULT_DOMAINS} | tr ' ' '\n'); do
+for line in \
+    $(echo -e "${DOMAINS}" | sed 's/^\s*//') \
+    $(echo ${DEFAULT_DOMAINS} | tr ' ' '\n');
+do
     base=${line%%=*}
     [ "${line/=/}" != "${line}" ] && args=${line#*=} || args="${DEFAULT_IP}"
     ip=${args%%;*}
@@ -70,10 +82,9 @@ EOF
     IFS=';'
     for rec in $args; do
         cat >> "/etc/bind/$base" <<EOF
-$rec
+$(echo "$rec" | sed 's/\\t/\t/g')
 EOF
     done
-    #domains[$base]="${subs:-${DEFAULT_SUBDOMAINS}}"
     cat >> /etc/bind/named.conf.local <<EOF
 zone "${base}" {
 	type master;
@@ -95,19 +106,3 @@ EOF
         exit 1
     fi
 done
-
-named-checkconf
-
-#if test "${LETSENCRYPT}" != "off"; then
-#    echo "... setup certificates"
-#    named
-#    for d in ${!domains[@]}; do
-#        installcerts $d "${domains[$d]}"
-#    done
-#    echo "ready."
-#    /start.letsencrypt.sh
-#    sleep infinity
-#else
-echo "ready."
-named -f -c /etc/bind/named.conf -u $RUN_USER
-#fi

@@ -1,0 +1,10 @@
+version: '3.3'
+services:
+  bind:
+    build:
+      context: .
+      args:
+        SEVERITY: warning
+    image: mwaeckerlin/bind
+    ports:
+      - 9953:9953/udp

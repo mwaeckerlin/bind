@@ -5,6 +5,10 @@ services:
       context: .
       args:
         SEVERITY: warning
+        DEFAULT_IP: 127.0.0.1
+        DEFAULT_DOMAINS: >
+          example.com
     image: mwaeckerlin/bind
     ports:
       - 9953:9953/udp
+      - 9953:9953/tcp

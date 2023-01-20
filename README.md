@@ -2,6 +2,8 @@
 
 Configures a bind DNS server with IP address and MX records. On one hand, it is very easy to configure a large set of different URLs with common subdomains to the same IP address. On the other hand, it is flexible enough to handle special cases. It always adds a default MX record.
 
+The image is minimised and secured: There is no shell and nothing but the bind executable its dependencies and the configurations in the image. Image size is only 17MB (subject to change from build to build). The bind executable is copied from the Alpine distribution and maintained there.
+
 ## Configuration
 
 There are three methods how you can configure `mwaeckerlin/bind`, two at build time and one at run time:
@@ -30,12 +32,13 @@ DNS service runs on port 9953.
 - `DEFAULT_DOMAINS`: list of domains to be configured with `DEFAULT_SUBDOMAINS` and `DEFAULT_IP` (default "")
 - `DOMAINS`: configure any non default url, where each domain must be on a single new line that is defined as:
     - _domain name_=_configuration, where _configuration is:
-      - semicolon (`;`) separated and contains the followinf fields:
-          1. the IP address
-          2. space separated list of subdomains
-             - if any subdomain points to a different IP address, just assign it with equal and prefix `A:`
-          3. all following semicolon separated lines that are added as is to the DNS record for full flexibility
-              - Use `\t` to insert a tabulator in self defined lines
+    - semicolon (`;`) separated and contains the following fields:
+        1. the IP address
+        2. space separated list of subdomains
+           - if any subdomain points to a different IP address, just assign it with equal and prefix `A:`
+        3. all following semicolon separated lines that are added as is to the DNS record for full flexibility
+            - Use `\t` to insert a tabulator in self defined lines
+    - example: `domain.com=12.34.56.78;www mail` uses IP address `12.34.56.78` for domain `domain.com` and generates subdomains `www.domain.com` and `mail.domain.com`
  
 ### Examples
 
@@ -47,7 +50,7 @@ For this either as build arguments or in `domains.sh` define the following varia
 
     DEFAULT_IP='12.34.56.78'
     DEFAULT_SUBDOMAINS='www mail'
-    DEFAULT_DOMAINS='1 domain2.com domain3.com domain4.com'
+    DEFAULT_DOMAINS='domain1.com domain2.com domain3.com domain4.com'
 
 You can e.g. specify build arguments at command line:
 

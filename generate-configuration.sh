@@ -11,6 +11,7 @@ RETRY=${RETRY:-'1800'}
 EXPIRE=${EXPIRE:-'604800'}
 NEGATIVE_CACHE_TTL=${NEGATIVE_CACHE_TTL:-'1800'}
 SEVERITY=${SEVERITY:-'warning'}
+DEFAULT_SUBDOMAINS=${DEFAULT_SUBDOMAINS:-'*'}
 
 ! test -e /etc/bind/named.conf.local || rm /etc/bind/named.conf.local
 

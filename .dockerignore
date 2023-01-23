@@ -1,0 +1,8 @@
+.dockerignore
+.gitignore
+.git
+deploy.sh
+docker-compose.sh
+LICENSE
+README.md
+*~

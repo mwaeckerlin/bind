@@ -8,11 +8,11 @@ The image is minimised and secured: There is no shell and nothing but the bind e
 
 There are three methods how you can configure `mwaeckerlin/bind`, two at build time and one at run time:
 
-  1. At build time, define variables in `domains.sh`
-  2. At build time, define build arguments on command line or in `docker-compose.yaml`
-  3. At runtime, just mount a volume containing your configuration to `/etc/bind`
+1. At build time, define variables in `domains.sh`
+2. At build time, define build arguments on command line or in `docker-compose.yaml`
+3. At runtime, just mount a volume containing your configuration to `/etc/bind`
 
-*Note:* In previous versions of `mwaeckerlin/bind`, before 2023/01, the configuration was done on run-time, now configuration is done on build-time. This allows a smaller and much more secure docker image. But you must build `mwaeckerlin/bind` for your configuration on your own. Alternatively you may just mount a volume to `/etc/bind` with any arbitrary configuration.
+_Note:_ In previous versions of `mwaeckerlin/bind`, before 2023/01, the configuration was done on run-time, now configuration is done on build-time. This allows a smaller and much more secure docker image. But you must build `mwaeckerlin/bind` for your configuration on your own. Alternatively you may just mount a volume to `/etc/bind` with any arbitrary configuration.
 
 ### Port
 
@@ -27,19 +27,20 @@ DNS service runs on port 9953.
 - `EXPIRE`: expiry value in seconds (default "604800")
 - `NEGATIVE_CACHE_TTL`: negative cache time to live in seconds (default "1800")
 - `TRANSFER`: IP address to allow DNS transfer (master to secondary)
+- `MAILSERVER`: your mailserver for the `MX` record, set this variable, if all domains have the same mail server (default "@", means same name as domain)
 - `DEFAULT_IP`: required if default domains are given (default "")
-- `DEFAULT_SUBDOMAINS`: subdomains to add to each default domain (default "*")
+- `DEFAULT_SUBDOMAINS`: subdomains to add to each default domain (default "\*")
 - `DEFAULT_DOMAINS`: list of domains to be configured with `DEFAULT_SUBDOMAINS` and `DEFAULT_IP` (default "")
 - `DOMAINS`: configure any non default url, where each domain must be on a single new line that is defined as:
-    - _domain name_=_configuration, where _configuration is:
-    - semicolon (`;`) separated and contains the following fields:
-        1. the IP address
-        2. space separated list of subdomains
-           - if any subdomain points to a different IP address, just assign it with equal and prefix `A:`
-        3. all following semicolon separated lines that are added as is to the DNS record for full flexibility
-            - Use `\t` to insert a tabulator in self defined lines
-    - example: `domain.com=12.34.56.78;www mail` uses IP address `12.34.56.78` for domain `domain.com` and generates subdomains `www.domain.com` and `mail.domain.com`
- 
+  - _domain name_=\_configuration, where \_configuration is:
+  - semicolon (`;`) separated and contains the following fields:
+    1. the IP address
+    2. space separated list of subdomains
+       - if any subdomain points to a different IP address, just assign it with equal and prefix `A:`
+    3. all following semicolon separated lines that are added as is to the DNS record for full flexibility
+       - Use `\t` to insert a tabulator in self defined lines
+  - example: `domain.com=12.34.56.78;www mail` uses IP address `12.34.56.78` for domain `domain.com` and generates subdomains `www.domain.com` and `mail.domain.com`
+
 ### Examples
 
 #### Simple Example
@@ -93,10 +94,10 @@ Now, in addition to the above default domain definitions, let's specify some spe
 
 In addition to the example above, `domain5.com` should have a subdomain `www` and `lists` on the default IP address, but two other subdomains, `mail` and `test` should go to IP address `123.45.67.89`, and we want a `TXT` record that contains `"v=spf1 a mx ip4:123.45.67.89 ~all"` and for mailing lists, we want a subdomain `lists` with an `MX` record that points to `domain5.com`. Due to bind configuration rules, a `CNAME` record must not other data, such as `MX`, so you must change the entry for `lists` to an `A` record, even though it points to the master domain's IP address. You achieve this by writing: `lists=A:12.34.56.78`. And `domain6.com` should be like the default domains, just with another IP address of `123.45.67.89`. Use `\t` to insert a tabulator. So this results in trhe following definition, be aware, that the entries must be new line separated:
 
-   DOMAINS='
-        domain5.com=;www mail=A:123.45.67.89 test=A:123.45.67.89 lists=A:12.34.56.78;@\tIN\tTXT\t"v=spf1 a mx ip4:123.45.67.89 ~all";lists\tIN\tMX 10\tdomain5.com.
-        domain6.com=123.45.67.89
-    '
+DOMAINS='
+domain5.com=;www mail=A:123.45.67.89 test=A:123.45.67.89 lists=A:12.34.56.78;@\tIN\tTXT\t"v=spf1 a mx ip4:123.45.67.89 ~all";lists\tIN\tMX 10\tdomain5.com.
+domain6.com=123.45.67.89
+'
 
 Again, build your image, don't forget the defaults from the example above:
 
@@ -137,7 +138,7 @@ lists   IN      MX 10   domain5.com.
 The same example added to `docker-compose.yaml`:
 
 ```yaml
-version: '3.3'
+version: "3.3"
 services:
   bind:
     build:
@@ -147,8 +148,8 @@ services:
         DEFAULT_SUBDOMAINS: www mail
         DEFAULT_DOMAINS: domain1.com domain2.com domain3.com domain4.com
         DOMAINS: |-
-            domain5.com=;www mail=A:123.45.67.89 test=A:123.45.67.89 lists=A:12.34.56.78;@\tIN\tTXT\t"v=spf1 a mx ip4:123.45.67.89 ~all";lists\tIN\tMX 10\tdomain5.com.
-            domain6.com=123.45.67.89
+          domain5.com=;www mail=A:123.45.67.89 test=A:123.45.67.89 lists=A:12.34.56.78;@\tIN\tTXT\t"v=spf1 a mx ip4:123.45.67.89 ~all";lists\tIN\tMX 10\tdomain5.com.
+          domain6.com=123.45.67.89
     image: mwaeckerlin/bind
     ports:
       - 9953:9953/udp

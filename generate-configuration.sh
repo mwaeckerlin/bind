@@ -12,6 +12,7 @@ EXPIRE=${EXPIRE:-'604800'}
 NEGATIVE_CACHE_TTL=${NEGATIVE_CACHE_TTL:-'1800'}
 SEVERITY=${SEVERITY:-'warning'}
 DEFAULT_SUBDOMAINS=${DEFAULT_SUBDOMAINS:-'*'}
+MAILSERVER=${MAILSERVER:-@}${MAILSERVER:+.}
 
 ! test -e /etc/bind/named.conf.local || rm /etc/bind/named.conf.local
 
@@ -69,7 +70,7 @@ do
 ;
 @	IN	NS	@
 @	IN	A	${ip}
-@	IN	MX 10	@
+@	IN	MX 10	${MAILSERVER}
 EOF
     IFS=" "
     for sub in ${subs:-${DEFAULT_SUBDOMAINS}}; do

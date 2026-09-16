@@ -38,7 +38,16 @@ options {
   pid-file "/var/run/named/named.pid";
   listen-on port 9953 { any; };
   listen-on-v6 { none; };
+  # authoritative-only server: never resolve foreign names for anyone
+  recursion no;
+  # zone transfers are only allowed per zone when TRANSFER is set
+  allow-transfer { none; };
+  # do not disclose the bind version (version.bind CH TXT)
+  version none;
 };
+
+# no remote control channel: named runs in foreground and is controlled by signals
+controls { };
 
 include "/etc/bind/named.conf.local";
 
@@ -52,6 +61,14 @@ for line in \
     $(echo ${DEFAULT_DOMAINS} | tr ' ' '\n');
 do
     base=${line%%=*}
+    # only valid domain name characters, no path or quote injection into file
+    # names and named.conf
+    case "$base" in
+        ''|.*|*..*|*[!a-zA-Z0-9.-]*)
+            echo "ERROR: invalid domain name: '$base'" >&2
+            exit 1
+            ;;
+    esac
     [ "${line/=/}" != "${line}" ] && args=${line#*=} || args="${DEFAULT_IP}"
     ip=${args%%;*}
     ip=${ip:-${DEFAULT_IP}}
@@ -108,3 +125,7 @@ EOF
         exit 1
     fi
 done
+
+# the control channel is disabled, so the generated rndc key must not end up in
+# the image
+rm -f /etc/bind/rndc.key

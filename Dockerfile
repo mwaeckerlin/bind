@@ -1,11 +1,10 @@
 # build stage - configuration is done here
-FROM mwaeckerlin/very-base as named
+FROM mwaeckerlin/very-base AS named
 
 # install packages
 RUN mkdir /root/etc
 RUN $PKG_INSTALL bind bind-tools
-RUN chown root.$RUN_GROUP /etc/bind /var/bind /var/bind/dyn /var/bind/pri /var/bind/sec /var/run/named 
-RUN chown $RUN_USER.$RUN_GROUP /etc/bind/rndc.key
+RUN chown root:$RUN_GROUP /etc/bind /var/bind /var/bind/dyn /var/bind/pri /var/bind/sec /var/run/named
 
 # create /root with only the named executable, modules and dependencies, no configuration yet
 RUN tar cph \
@@ -17,6 +16,7 @@ RUN tar cph \
 
 # cache is invalidated where new arguments are used the first time
 ARG EXPIRE
+ARG MAILSERVER
 ARG NEGATIVE_CACHE_TTL
 ARG REFRESH
 ARG RETRY
@@ -41,6 +41,6 @@ RUN mv /etc/bind /root/etc/.
 FROM mwaeckerlin/scratch
 EXPOSE 9953/udp
 EXPOSE 9953/tcp
-ENV CONTAINERNAME "bind"
+ENV CONTAINERNAME="bind"
 ENTRYPOINT [ "/usr/sbin/named",  "-f", "-c", "/etc/bind/named.conf", "-L", "/dev/stdout" ]
 COPY --from=named /root /

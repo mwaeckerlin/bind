@@ -21,6 +21,9 @@
 # If defined, allows transfer
 #TRANSFER=''
 
+# Mail server for the MX record of every domain, default '@' means the domain itself
+#MAILSERVER=''
+
 # Logging severity
 #SEVERITY='warning'
 
@@ -28,7 +31,7 @@
 #DEFAULT_SUBDOMAINS='www'
 
 # IP that is used by default
-#DEFAULT_IP='212.51.159.193'
+#DEFAULT_IP='12.34.56.78'
 
 # default domains are configured to go to the DEFAULT_IP and to contain the DEFAULT_SUBDOMAINS
 #DEFAULT_DOMAINS=''

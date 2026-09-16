@@ -1,4 +1,6 @@
-version: '3.3'
+# The example this repository builds and tests: two domains that take the
+# default address and the default subdomains, and one that brings its own
+# subdomains, a subdomain on another address and a free form record.
 services:
   bind:
     build:
@@ -6,8 +8,10 @@ services:
       args:
         SEVERITY: warning
         DEFAULT_IP: 127.0.0.1
-        DEFAULT_DOMAINS: >
-          example.com
+        DEFAULT_SUBDOMAINS: www mail
+        DEFAULT_DOMAINS: example.com example.net
+        DOMAINS: |-
+          example.org=;www lists=A:127.0.0.2;@\tIN\tTXT\t"v=spf1 -all"
     image: mwaeckerlin/bind
     ports:
       - 9953:9953/udp

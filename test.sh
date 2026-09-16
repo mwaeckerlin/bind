@@ -1,54 +1,34 @@
-#!/bin/bash -e
+#!/usr/bin/env bash
+# Ask a running bind server for every record the configuration of
+# docker-compose.yaml promises. This is the check of a deployment: the same
+# tests that tests/run-e2e.sh runs against the built container run against the
+# server that is actually serving.
+#
+#   ./test.sh                  the whole e2e suite against the built image
+#   ./test.sh ns1.example.com  a deployed server, port 53
+#   ./test.sh localhost 9953   a server on another port
+set -euo pipefail
 
-url=${1:-localhost}
-port=${2:-$(test "$url" = "localhost" && echo 9953 || echo 53)}
+COMPOSE="tests/e2e/docker-compose.yml"
+cd "$(dirname "$0")"
 
-# configure the same way as in docker-compose.yaml
-DEFAULT_SUBDOMAINS="www test"
-DEFAULT_IP="127.0.0.1"
-DOMAINS='
-          example.com
-'
-
-lookup() {
-    nslookup -port=$port $1 $url | sed -n '/Non-authoritative answer:/{n;n;n};/^Name:/{n;s/Address:\s*//p}'
-}
-check() {
-    response=$(lookup $1)
-    if ! test "$response" = "$2"; then
-        echo "*** ERROR $1 -> '$response' ≠ '$2'"
-        fails+="\n*** ERROR $1 -> '$response' ≠ '$2'"
-        return 1
-    else
-        echo "--- SUCCESS $1 -> '$response"
-        return 0
-    fi
-}
-
-IFS='
-'
-for test in $(sed 's/^\s*//'<<<"$DOMAINS"); do
-    DOMAIN=${test%%=*}
-    [[ $test =~ = ]] && IP=${test#*=} || IP=''
-    IP=${IP%%;*}
-    IP=${IP:-$DEFAULT_IP}
-    [[ $test =~ \; ]] && SUBS=${test#*;} || SUBS=$DEFAULT_SUBDOMAINS
-    SUBS=${SUBS%%;*}
-    if check "$DOMAIN" "$IP"; then
-        IFS=' '
-        for sub in $SUBS; do
-            SUB=${sub%%=*}
-            [[ $sub =~ =A: ]] && SIP=${sub#*=A:} || SIP=$IP
-            check $SUB.$DOMAIN $SIP || true
-        done
-    fi
-done
-
-echo
-if test -z "$fails"; then
-    echo "    #### ALL TESTS PASSED ####"
-else
-    echo "    **** SOME TESTS FAILED ****"
-    echo -e "$fails"
-    exit 1
+if [[ $# -eq 0 ]]; then
+    exec bash tests/run-e2e.sh
 fi
+
+SERVER="$1"
+PORT="${2:-53}"
+shift $(( $# > 1 ? 2 : 1 ))
+
+eval "$(python3 tests/config.py)"
+export TTL SERIAL REFRESH RETRY EXPIRE NEGATIVE_CACHE_TTL SEVERITY TRANSFER \
+    MAILSERVER DEFAULT_IP DEFAULT_SUBDOMAINS DEFAULT_DOMAINS DOMAINS
+
+echo "==> Building the test runner..."
+docker compose -f "$COMPOSE" build --quiet test-runner
+
+echo "==> Asking ${SERVER} on port ${PORT}..."
+docker compose -f "$COMPOSE" run --rm --no-deps \
+    -e PRODUCTION_SERVER="$SERVER" -e BIND_PORT="$PORT" -e WAIT_FOR=production \
+    test-runner pytest -q --tb=short \
+    test_records.py test_transport.py test_hardening.py "$@"

@@ -1,0 +1,128 @@
+# E2E stack: one bind service per supported usage, all built from the same
+# image, plus a pytest test-runner.
+#   production -> the configuration of docker-compose.yaml, handed in through
+#                 the environment by tests/run-e2e.sh, so the domain list is
+#                 never written a second time
+#   defaults   -> nothing but the domains and one address: every other value
+#                 must be the documented default
+#   configured -> every build argument with a value of its own, TRANSFER
+#                 pointing at the test-runner, which therefore may pull the
+#                 zones while every other address may not
+#   mounted    -> /etc/bind replaced by a read-only mount at run time; the zone
+#                 built into that image must be gone
+#
+# The test-runner holds the fixed address the `configured` service allows the
+# transfer from, so the network carries a subnet of its own.
+# distinct project name: the stack must not collide with the stack of
+# docker-compose.yaml, which uses the same directory name
+name: bind-e2e
+
+services:
+
+  production:
+    image: mwaeckerlin/bind
+    build:
+      context: ../..
+      args:
+        TTL: ${TTL:-}
+        SERIAL: ${SERIAL:-}
+        REFRESH: ${REFRESH:-}
+        RETRY: ${RETRY:-}
+        EXPIRE: ${EXPIRE:-}
+        NEGATIVE_CACHE_TTL: ${NEGATIVE_CACHE_TTL:-}
+        SEVERITY: ${SEVERITY:-}
+        TRANSFER: ${TRANSFER:-}
+        MAILSERVER: ${MAILSERVER:-}
+        DEFAULT_IP: ${DEFAULT_IP:-}
+        DEFAULT_SUBDOMAINS: ${DEFAULT_SUBDOMAINS:-}
+        DEFAULT_DOMAINS: ${DEFAULT_DOMAINS:-}
+        DOMAINS: ${DOMAINS:-}
+    networks:
+      - dns
+
+  defaults:
+    image: mwaeckerlin/bind-defaults
+    build:
+      context: ../..
+      args:
+        DEFAULT_IP: 10.1.0.1
+        DEFAULT_DOMAINS: bare.example
+        DOMAINS: |-
+          listed.example
+          address.example=10.1.0.2
+    networks:
+      - dns
+
+  configured:
+    image: mwaeckerlin/bind-configured
+    build:
+      context: ../..
+      args:
+        SERIAL: "2026091601"
+        TTL: "900"
+        REFRESH: "1200"
+        RETRY: "600"
+        EXPIRE: "86400"
+        NEGATIVE_CACHE_TTL: "300"
+        SEVERITY: info
+        TRANSFER: 10.253.53.10
+        MAILSERVER: mail.example.com
+        DEFAULT_IP: 10.253.53.1
+        DEFAULT_SUBDOMAINS: www mail
+        DEFAULT_DOMAINS: default.example
+        DOMAINS: |-
+          transfer.example
+          special.example=10.253.53.2;www old.www lists=A:10.253.53.3;@\tIN\tTXT\t"v=spf1 -all";lists\tIN\tMX 20\tspecial.example.
+          address.example=10.253.53.4
+          records.example=;host=AAAA:2001:db8::1 alias=CNAME:special.example.
+          empty.example=
+    networks:
+      - dns
+
+  mounted:
+    image: mwaeckerlin/bind-mounted
+    build:
+      context: ../..
+      # this zone is built into the image and the mounted volume replaces it,
+      # so an answer for it would mean the volume was not read
+      args:
+        DEFAULT_IP: 10.99.0.9
+        DEFAULT_SUBDOMAINS: www
+        DOMAINS: replaced.example
+    volumes:
+      - ./config:/etc/bind:ro
+    networks:
+      - dns
+
+  test-runner:
+    build:
+      context: .
+    depends_on:
+      - production
+      - defaults
+      - configured
+      - mounted
+    environment:
+      TTL: ${TTL:-}
+      SERIAL: ${SERIAL:-}
+      REFRESH: ${REFRESH:-}
+      RETRY: ${RETRY:-}
+      EXPIRE: ${EXPIRE:-}
+      NEGATIVE_CACHE_TTL: ${NEGATIVE_CACHE_TTL:-}
+      SEVERITY: ${SEVERITY:-}
+      TRANSFER: ${TRANSFER:-}
+      MAILSERVER: ${MAILSERVER:-}
+      DEFAULT_IP: ${DEFAULT_IP:-}
+      DEFAULT_SUBDOMAINS: ${DEFAULT_SUBDOMAINS:-}
+      DEFAULT_DOMAINS: ${DEFAULT_DOMAINS:-}
+      DOMAINS: ${DOMAINS:-}
+    networks:
+      dns:
+        ipv4_address: 10.253.53.10
+    command: ["pytest", "-q", "--tb=short"]
+
+networks:
+  dns:
+    ipam:
+      config:
+        - subnet: 10.253.53.0/24

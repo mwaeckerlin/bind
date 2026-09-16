@@ -1,0 +1,24 @@
+{
+  "name": "@mwaeckerlin/bind",
+  "version": "1.0.0",
+  "description": "Authoritative bind DNS server, configured at build time",
+  "private": true,
+  "scripts": {
+    "build": "docker compose build",
+    "start": "docker compose up --build --force-recreate --remove-orphans",
+    "start:daemon": "docker compose up -d --build --force-recreate --remove-orphans",
+    "stop": "docker compose down",
+    "test": "npm run test:docs && npm run test:image && npm run test:config && npm run test:e2e",
+    "test:docs": "bash tests/docs-contract.sh",
+    "test:image": "npm run build && bash tests/image-contract.sh mwaeckerlin/bind",
+    "test:config": "bash tests/config-contract.sh mwaeckerlin/bind",
+    "test:e2e": "bash tests/run-e2e.sh",
+    "test:server": "bash test.sh"
+  },
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/mwaeckerlin/bind.git"
+  },
+  "author": "Marc Wäckerlin",
+  "license": "LGPL-3.0-or-later"
+}

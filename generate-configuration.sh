@@ -14,6 +14,31 @@ SEVERITY=${SEVERITY:-'warning'}
 DEFAULT_SUBDOMAINS=${DEFAULT_SUBDOMAINS:-'*'}
 MAILSERVER=${MAILSERVER:-@}${MAILSERVER:+.}
 
+# RECURSION names who may have foreign names looked up here; unset the server
+# is authoritative-only, which is the safe default (see README.md, Security)
+if test -n "${RECURSION}"; then
+    recursion="  # resolves foreign names for the clients named here
+  recursion yes;
+  allow-recursion { ${RECURSION%;}; };"
+else
+    recursion="  # authoritative-only server: never resolve foreign names for anyone
+  recursion no;"
+fi
+
+# RATE_LIMIT is the number of identical answers one client prefix gets per
+# second; it limits how much this server can add to a reflected attack
+if test -n "${RATE_LIMIT}"; then
+    ratelimit="
+  # response rate limiting against reflection and amplification
+  rate-limit {
+    responses-per-second ${RATE_LIMIT%;};
+    slip 2;
+    window 5;
+  };"
+else
+    ratelimit=''
+fi
+
 ! test -e /etc/bind/named.conf.local || rm /etc/bind/named.conf.local
 
 cat >> /etc/bind/named.conf <<EOF
@@ -38,12 +63,11 @@ options {
   pid-file "/var/run/named/named.pid";
   listen-on port 9953 { any; };
   listen-on-v6 { none; };
-  # authoritative-only server: never resolve foreign names for anyone
-  recursion no;
+${recursion}
   # zone transfers are only allowed per zone when TRANSFER is set
   allow-transfer { none; };
   # do not disclose the bind version (version.bind CH TXT)
-  version none;
+  version none;${ratelimit}
 };
 
 # no remote control channel: named runs in foreground and is controlled by signals

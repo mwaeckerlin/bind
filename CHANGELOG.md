@@ -1,5 +1,11 @@
 # Changelog
 
+- 2026-10-02 **1.0.1**
+    - The image is published for amd64 and arm64 under one tag, built and published automatically on every change and every week
+    - The server looks foreign names up where `RECURSION` names who may ask — an address, a network or `any` for everybody; without the variable it answers for its own zones only, as before. The README names what comes with it: reflection with a forged sender address, cache poisoning, and your own traffic
+    - `RATE_LIMIT` limits how many identical answers one client prefix gets per second, which is what caps the server's contribution to an attack on somebody else; recommended `10` on a public server, unset there is no limit
+    - `TRANSFER`, the permission for a secondary server to pull the zones, is documented with what an open transfer gives away — the complete list of every zone, subdomain and address — and with the limit that the permission is an address and not a shared key
+
 - 2026-09-16 **1.0.0**
     - The server answers for its own zones only: recursion is switched off, so the image can no longer be used as an open resolver or to amplify an attack
     - Zone transfers are refused unless a secondary server is named in `TRANSFER`, so the complete list of domains and hosts cannot be fetched

@@ -33,6 +33,8 @@ The e2e stack (`tests/e2e/`) holds one server per usage: `production` with the c
 - **F12** `tests/e2e/test_transport.py` › test_the_same_answer_over_both_transports — the same query over UDP and over TCP.
 - **F13** `tests/run-e2e.sh` › log level — the `production` server at the default level writes no line per query, the `configured` server with `SEVERITY=info` writes one.
 - **F14** `tests/e2e/test_mounted.py` › test_the_mounted_zone_answers, test_its_subdomain_answers, test_its_mail_server_answers, test_the_zone_built_into_the_image_is_gone — the mounted configuration replaces the built one completely.
+- **F15** `tests/e2e/test_recursion.py` › test_without_the_variable_a_foreign_name_is_refused, test_with_the_variable_a_foreign_name_is_accepted, test_the_recursive_server_still_answers_its_own_zone — a foreign name is answered `REFUSED` without `RECURSION` and attempted with it, and the server keeps serving its own zones.
+- **F16** `tests/e2e/test_recursion.py` › test_without_the_variable_every_answer_is_sent, test_with_the_variable_identical_answers_are_limited — sixty identical queries get sixty answers without `RATE_LIMIT` and fewer with it, while the server still answers.
 
 ## Config contract (`tests/config-contract.sh`)
 
@@ -54,3 +56,7 @@ Reads the configuration out of the shipped image and builds the cases that must 
 ## Docs contract (`tests/docs-contract.sh`)
 
 - **F1**–**F14** every feature of `FEATURES.md` carries an entry here, every number used here exists as a feature, no number is defined twice and no test is skipped.
+
+## Workflow contract
+
+- **F17** `tests/workflow-contract.sh` of `mwaeckerlin/scratch` — the reusable workflow selects exactly the images a repository publishes; this repository calls it from `.github/workflows/docker.yml`.

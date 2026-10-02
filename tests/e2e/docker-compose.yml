@@ -94,6 +94,22 @@ services:
     networks:
       - dns
 
+  recursive:
+    image: mwaeckerlin/bind-recursive
+    build:
+      context: ../..
+      # the two switches a server only gets on purpose: it looks foreign names
+      # up for anybody, and it limits how many identical answers one client
+      # prefix gets per second
+      args:
+        RECURSION: any
+        RATE_LIMIT: "5"
+        DEFAULT_IP: 10.4.0.1
+        DEFAULT_SUBDOMAINS: www
+        DEFAULT_DOMAINS: recursive.example
+    networks:
+      - dns
+
   test-runner:
     build:
       context: .
@@ -102,6 +118,7 @@ services:
       - defaults
       - configured
       - mounted
+      - recursive
     environment:
       TTL: ${TTL:-}
       SERIAL: ${SERIAL:-}

@@ -25,7 +25,7 @@ echo "==> Building test stack..."
 docker compose -f "$COMPOSE" build --quiet
 
 echo "==> Starting services..."
-docker compose -f "$COMPOSE" up -d --remove-orphans production defaults configured mounted
+docker compose -f "$COMPOSE" up -d --remove-orphans production defaults configured mounted recursive
 
 echo "==> Running tests..."
 EXIT=0

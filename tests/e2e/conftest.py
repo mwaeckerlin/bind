@@ -29,6 +29,7 @@ PRODUCTION = os.environ.get("PRODUCTION_SERVER", "production")
 DEFAULTS = os.environ.get("DEFAULTS_SERVER", "defaults")
 CONFIGURED = os.environ.get("CONFIGURED_SERVER", "configured")
 MOUNTED = os.environ.get("MOUNTED_SERVER", "mounted")
+RECURSIVE = os.environ.get("RECURSIVE_SERVER", "recursive")
 PORT = int(os.environ.get("BIND_PORT", "9953"))
 
 # the defaults of generate-configuration.sh, as documented in README.md; they
@@ -65,9 +66,9 @@ def configuration(prefix=""):
     return {
         name: os.environ.get(prefix + name, "")
         for name in ("TTL", "SERIAL", "REFRESH", "RETRY", "EXPIRE",
-                     "NEGATIVE_CACHE_TTL", "SEVERITY", "TRANSFER", "MAILSERVER",
-                     "DEFAULT_IP", "DEFAULT_SUBDOMAINS", "DEFAULT_DOMAINS",
-                     "DOMAINS")
+                     "NEGATIVE_CACHE_TTL", "SEVERITY", "TRANSFER", "RECURSION",
+                     "RATE_LIMIT", "MAILSERVER", "DEFAULT_IP",
+                     "DEFAULT_SUBDOMAINS", "DEFAULT_DOMAINS", "DOMAINS")
     }
 
 
@@ -137,6 +138,7 @@ ZONES = {
     "defaults": (DEFAULTS, lambda: "bare.example"),
     "configured": (CONFIGURED, lambda: "transfer.example"),
     "mounted": (MOUNTED, lambda: "mounted.example"),
+    "recursive": (RECURSIVE, lambda: "recursive.example"),
 }
 
 

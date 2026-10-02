@@ -18,8 +18,15 @@
 # Negative cache Time To Live in seconds
 #NEGATIVE_CACHE_TTL='1800'
 
-# If defined, allows transfer
+# If defined, allows transfer to that address (master to secondary)
 #TRANSFER=''
+
+# If defined, resolves foreign names for the clients named here ('any' makes an
+# open resolver); unset the server answers for its own zones only
+#RECURSION=''
+
+# If defined, the number of identical answers one client prefix gets per second
+#RATE_LIMIT=''
 
 # Mail server for the MX record of every domain, default '@' means the domain itself
 #MAILSERVER=''

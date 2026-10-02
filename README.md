@@ -18,19 +18,6 @@ _Note:_ In previous versions of `mwaeckerlin/bind`, before 2023/01, the configur
 
 DNS service runs on port 9953, over UDP and over TCP. The unprivileged port lets the container run beside a `named` of the host; TCP is what a client falls back to when an answer does not fit into one datagram, and it is the transport of a zone transfer.
 
-### Security
-
-The generated configuration is hardened for an authoritative-only server:
-
-- **No recursion:** `recursion no` — the server only answers for its own zones and never resolves foreign names, so it cannot be abused as an open resolver or for amplification.
-- **No zone transfers by default:** `allow-transfer { none; }` globally; a transfer is only allowed for the zones and the address given in `TRANSFER`. Trade-off: if you operate a secondary DNS server, you must set `TRANSFER`, otherwise it will not receive the zones.
-- **No version disclosure:** `version none` — queries for `version.bind` are refused.
-- **No control channel:** `controls { }` and the generated `rndc.key` is removed, so no secret key ends up in the image layers; the server is controlled through container signals only.
-- **Validated input:** domain names from `DOMAINS`/`DEFAULT_DOMAINS` are validated at build time before they are rendered into file names and the bind configuration.
-- **Minimal non-root image:** the final image contains only `named` and its libraries (no shell, no interpreter, no package manager), built `FROM mwaeckerlin/scratch`, which runs as an unprivileged user.
-
-Since the image is built from the rolling latest Alpine bind package, rebuild and redeploy regularly to pick up bind security fixes.
-
 ### Variables in `domains.sh` or as Build Arguments
 
 - `TTL`: time to live in seconds (default "3600")
@@ -39,7 +26,9 @@ Since the image is built from the rolling latest Alpine bind package, rebuild an
 - `RETRY`: retry value in seconds (default "1800")
 - `EXPIRE`: expiry value in seconds (default "604800")
 - `NEGATIVE_CACHE_TTL`: negative cache time to live in seconds (default "1800")
-- `TRANSFER`: IP address to allow DNS transfer (master to secondary)
+- `TRANSFER`: IP address to allow DNS transfer (master to secondary), default "" — no transfer at all; see [Handing the zones to a secondary](#handing-the-zones-to-a-secondary-transfer)
+- `RECURSION`: who may have foreign names looked up here — an address, a network, a bind address list, or `any` (default "", the server answers for its own zones only); read [Looking foreign names up](#looking-foreign-names-up-recursion) before you set it
+- `RATE_LIMIT`: identical answers per second per client prefix (default "", no limit); recommended `10` on a public server, see [The limit on identical answers](#the-limit-on-identical-answers-rate_limit)
 - `SEVERITY`: how much the server logs to standard output, one of `critical`, `error`, `warning`, `notice`, `info`, `debug` (default "warning"); `info` logs a line per query, which is what you want while you hunt a problem and not in normal operation
 - `MAILSERVER`: your mailserver for the `MX` record, set this variable, if all domains have the same mail server (default "@", means same name as domain)
 - `DEFAULT_IP`: required if default domains are given (default "")
@@ -152,7 +141,6 @@ lists   IN      MX 10   domain5.com.
 The same example added to `docker-compose.yaml`:
 
 ```yaml
-version: "3.3"
 services:
   bind:
     build:
@@ -184,7 +172,7 @@ Everything runs through the scripts in `package.json`:
 - `npm run test:docs` — every feature carries a test and no test is skipped
 - `npm run test:image` — the delivered image is headless, unprivileged and carries no key
 - `npm run test:config` — the shipped configuration is production-safe, `domains.sh` is read, an invalid domain name stops the build
-- `npm run test:e2e` — four servers are built and asked: the configuration of this repository, the defaults, every variable with a value of its own, and a configuration mounted at run time
+- `npm run test:e2e` — five servers are built and asked: the configuration of this repository, the defaults, every variable with a value of its own, a configuration mounted at run time, and one that resolves foreign names under a rate limit
 
 The same questions go to a deployed server, which is how a deployment is checked after the fact:
 
@@ -193,4 +181,41 @@ The same questions go to a deployed server, which is how a deployment is checked
 
 The tests read the configuration from `docker-compose.yaml`, so they always measure the configuration this repository describes and never a second copy of it.
 
-[FEATURES.md](FEATURES.md) lists what the image does, [TESTS.md](TESTS.md) which test covers which feature.
+## Security
+
+The generated configuration is hardened for an authoritative-only server:
+
+- **No recursion:** `recursion no` — the server only answers for its own zones and never resolves foreign names, so it cannot be abused as an open resolver or for amplification.
+- **No zone transfers by default:** `allow-transfer { none; }` globally; a transfer is only allowed for the zones and the address given in `TRANSFER`. Trade-off: if you operate a secondary DNS server, you must set `TRANSFER`, otherwise it will not receive the zones.
+- **No version disclosure:** `version none` — queries for `version.bind` are refused.
+- **No control channel:** `controls { }` and the generated `rndc.key` is removed, so no secret key ends up in the image layers; the server is controlled through container signals only.
+- **Validated input:** domain names from `DOMAINS`/`DEFAULT_DOMAINS` are validated at build time before they are rendered into file names and the bind configuration.
+- **Minimal non-root image:** the final image contains only `named` and its libraries (no shell, no interpreter, no package manager), built `FROM mwaeckerlin/scratch`, which runs as an unprivileged user.
+
+Since the image is built from the rolling latest Alpine bind package, rebuild and redeploy regularly to pick up bind security fixes.
+
+### Looking foreign names up: `RECURSION`
+
+An authoritative server answers for its own zones. A resolver looks **any** name up: it asks the root servers, the responsible top level domain and the authoritative server, and returns what it gets. That is a useful service — a resolver of your own answers where a state-mandated filter in a provider's resolver does not — and it is off here unless you ask for it.
+
+`RECURSION` names who may use it: an address, a network, a bind address list, or `any` for everybody. What it costs you:
+
+- **Reflection and amplification.** An attacker sends a small query with a **forged sender address**, the one of his victim. Your server sends the much larger answer to that victim. Your machine and your line carry the traffic, and your address is what the victim sees. This is what `RATE_LIMIT` below is for; it limits the damage and cannot remove it, because the server must still answer legitimate queries. Setting `RECURSION` without `RATE_LIMIT` is the combination that gets a server abused.
+- **Cache poisoning.** A resolver keeps a cache. An attacker who manages to have a forged answer accepted poisons that cache for everyone using the server. Current bind makes this hard (random source ports, random query identifiers, DNSSEC validation where the zone is signed), so it is an attack that needs luck and volume rather than a trick — but the class exists only once recursion is on. Without recursion there is no cache and nothing to poison.
+- **Your resources.** Every foreign lookup is work and traffic you pay for.
+
+The narrow setting is a network, not `any`: `RECURSION='10.0.0.0/8; 192.168.0.0/16'` serves your own clients and nobody else. `any` on a public address makes an open resolver; do that only deliberately, with `RATE_LIMIT` set.
+
+### The limit on identical answers: `RATE_LIMIT`
+
+`RATE_LIMIT` is the number of identical answers one client prefix gets per second (bind's response rate limiting). Above it, bind drops the answer or sends it truncated, which asks a genuine client to come back over TCP — where the sender address cannot be forged. It limits what your server contributes to an attack on somebody else, and it applies to an authoritative server too: reflection works with the zones you serve, recursion only makes the answers bigger.
+
+Recommendation: `RATE_LIMIT='10'` for a public authoritative server; identical answers ten times per second per client prefix is far above what a real client asks for and far below what an attack needs. Set it lower only after watching the log. Unset there is no limit, which is the behaviour of every earlier version.
+
+### Handing the zones to a secondary: `TRANSFER`
+
+A zone transfer (`AXFR`) is how a secondary server takes over the zones of its master — the mechanism behind master and slave, and nothing is wrong with it. The question is who may ask. A single query has to know the name it asks for; a transfer returns the **complete** list: every zone, every subdomain, every address. That is the map an attacker otherwise has to guess, with the names of your administration, monitoring and test systems on it, so an open transfer is a finding in every security audit.
+
+`TRANSFER` names the address of your secondary. Only that address may pull the zones, and it is notified when they change; everybody else is refused. Without the variable no transfer is allowed at all, which is right when every server of yours is built from the same image and none of them pulls.
+
+Limitation: the permission is an address, and this image has no shared key (`TSIG`) for it. A key would have to be built into the image, and a secret in an image layer is what this image deliberately avoids. Where the transfer crosses a network you do not control, run it over a channel you do — or fetch the zones the way this image is configured in the first place, by building them in.

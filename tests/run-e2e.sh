@@ -34,11 +34,19 @@ docker compose -f "$COMPOSE" run --rm test-runner "$@" || EXIT=$?
 echo "==> Checking the log level..."
 # the production service runs at the default level and must not log a line per
 # query, the configured service runs at level info and must
-if docker compose -f "$COMPOSE" logs production 2>&1 | grep -q 'queries: info: client'; then
+# The logs are read into a variable before they are searched: `grep -q` stops
+# at the first hit and closes the pipe, `docker compose logs` then dies of
+# SIGPIPE, and with pipefail the whole pipeline counts as failed although the
+# line was found. On the arm64 runner the configured service had logged enough
+# for that to happen (2026-10-02: the log collected right after the check
+# carried 46 query lines).
+PRODUCTION_LOG="$(docker compose -f "$COMPOSE" logs production 2>&1)"
+CONFIGURED_LOG="$(docker compose -f "$COMPOSE" logs configured 2>&1)"
+if grep -q 'queries: info: client' <<< "$PRODUCTION_LOG"; then
     echo "FAIL: the default log level logs every single query"
     EXIT=1
 fi
-if ! docker compose -f "$COMPOSE" logs configured 2>&1 | grep -q 'queries: info: client'; then
+if ! grep -q 'queries: info: client' <<< "$CONFIGURED_LOG"; then
     echo "FAIL: SEVERITY=info does not reach the server"
     EXIT=1
 fi

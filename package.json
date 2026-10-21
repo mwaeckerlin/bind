@@ -1,7 +1,7 @@
 {
   "name": "@mwaeckerlin/bind",
-  "version": "1.0.1",
-  "description": "Authoritative bind DNS server, configured at build time",
+  "version": "1.0.2",
+  "description": "Authoritative bind DNS server, configured at build time or at start",
   "private": true,
   "scripts": {
     "build": "docker compose build",

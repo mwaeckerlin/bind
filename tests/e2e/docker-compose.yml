@@ -10,6 +10,9 @@
 #                 zones while every other address may not
 #   mounted    -> /etc/bind replaced by a read-only mount at run time; the zone
 #                 built into that image must be gone
+#   runtime    -> built with a configuration of its own and started with
+#                 variables in the environment: those replace the values they
+#                 name, the build's other values stay in force
 #
 # The test-runner holds the fixed address the `configured` service allows the
 # transfer from, so the network carries a subnet of its own.
@@ -33,6 +36,9 @@ services:
         SEVERITY: ${SEVERITY:-}
         TRANSFER: ${TRANSFER:-}
         MAILSERVER: ${MAILSERVER:-}
+        NAMESERVER: ${NAMESERVER:-}
+        HOSTMASTER: ${HOSTMASTER:-}
+        IPV6: ${IPV6:-}
         DEFAULT_IP: ${DEFAULT_IP:-}
         DEFAULT_SUBDOMAINS: ${DEFAULT_SUBDOMAINS:-}
         DEFAULT_DOMAINS: ${DEFAULT_DOMAINS:-}
@@ -110,6 +116,25 @@ services:
     networks:
       - dns
 
+  runtime:
+    image: mwaeckerlin/bind-runtime
+    build:
+      context: ../..
+      args:
+        TTL: "900"
+        DEFAULT_IP: 10.5.0.1
+        DEFAULT_SUBDOMAINS: www
+        DOMAINS: built.example
+    environment:
+      DOMAINS: |-
+        runtime.example
+        own.example=10.5.0.2;www lists=A:10.5.0.3;@\tIN\tTXT\t"v=spf1 -all"
+      MAILSERVER: mail.example.com
+      NAMESERVER: ns1.example.com
+      HOSTMASTER: hostmaster.example.com
+    networks:
+      - dns
+
   test-runner:
     build:
       context: .
@@ -119,6 +144,7 @@ services:
       - configured
       - mounted
       - recursive
+      - runtime
     environment:
       TTL: ${TTL:-}
       SERIAL: ${SERIAL:-}
@@ -129,6 +155,9 @@ services:
       SEVERITY: ${SEVERITY:-}
       TRANSFER: ${TRANSFER:-}
       MAILSERVER: ${MAILSERVER:-}
+      NAMESERVER: ${NAMESERVER:-}
+      HOSTMASTER: ${HOSTMASTER:-}
+      IPV6: ${IPV6:-}
       DEFAULT_IP: ${DEFAULT_IP:-}
       DEFAULT_SUBDOMAINS: ${DEFAULT_SUBDOMAINS:-}
       DEFAULT_DOMAINS: ${DEFAULT_DOMAINS:-}

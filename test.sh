@@ -22,7 +22,8 @@ shift $(( $# > 1 ? 2 : 1 ))
 
 eval "$(python3 tests/config.py)"
 export TTL SERIAL REFRESH RETRY EXPIRE NEGATIVE_CACHE_TTL SEVERITY TRANSFER \
-    MAILSERVER DEFAULT_IP DEFAULT_SUBDOMAINS DEFAULT_DOMAINS DOMAINS
+    MAILSERVER NAMESERVER HOSTMASTER IPV6 DEFAULT_IP DEFAULT_SUBDOMAINS \
+    DEFAULT_DOMAINS DOMAINS
 
 echo "==> Building the test runner..."
 docker compose -f "$COMPOSE" build --quiet test-runner

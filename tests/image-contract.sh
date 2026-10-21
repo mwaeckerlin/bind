@@ -3,7 +3,8 @@
 #
 # A production image must contain nothing that lets an attacker who reaches
 # code execution pivot: no shell, no perl, no busybox. The image ships the
-# service binary, its libraries and its configuration — nothing else. The
+# service binary, named-checkconf, their libraries, the init that writes the
+# configuration and the configuration — nothing else. The
 # control key that bind generates must be gone, otherwise a secret lies in an
 # image layer of a public image.
 #
@@ -93,6 +94,11 @@ for image in "$@"; do
     CONTENTS=$(_contents "${image}")
     _holds     "${image}" usr/sbin/named       holds_the_server
     _holds     "${image}" etc/bind/named.conf  holds_the_configuration
+    _holds     "${image}" usr/bin/init         holds_the_init
+    _holds     "${image}" 'usr/s*bin/named-checkconf' holds_named_checkconf
+    _holds     "${image}" run/bind/            holds_the_runtime_directory
+    _holds     "${image}" usr/share/bind/defaults/DOMAINS records_the_build_values
+    _inspect "${image}" '{{json .Config.Entrypoint}}' '["/usr/bin/init"]' init_entrypoint
     _holds_not "${image}" etc/bind/rndc.key    no_control_key
     _holds_not "${image}" sbin/apk             no_package_manager
 

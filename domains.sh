@@ -31,6 +31,16 @@
 # Mail server for the MX record of every domain, default '@' means the domain itself
 #MAILSERVER=''
 
+# Name server for the NS record of every domain, default '@' means the domain itself
+#NAMESERVER=''
+
+# Mailbox of the person responsible for the zones, in the SOA record, written
+# with a dot for the @; default 'root.<domain>'
+#HOSTMASTER=''
+
+# IPv6 addresses the server listens on, 'any' for all; default 'none' listens on IPv4 only
+#IPV6='none'
+
 # Logging severity
 #SEVERITY='warning'
 

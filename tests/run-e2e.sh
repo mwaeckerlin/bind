@@ -14,7 +14,8 @@ cd "$(dirname "$0")/.."
 
 eval "$(python3 tests/config.py)"
 export TTL SERIAL REFRESH RETRY EXPIRE NEGATIVE_CACHE_TTL SEVERITY TRANSFER \
-    MAILSERVER DEFAULT_IP DEFAULT_SUBDOMAINS DEFAULT_DOMAINS DOMAINS
+    MAILSERVER NAMESERVER HOSTMASTER IPV6 DEFAULT_IP DEFAULT_SUBDOMAINS \
+    DEFAULT_DOMAINS DOMAINS
 
 cleanup() {
     docker compose -f "$COMPOSE" down -v --remove-orphans 2>/dev/null || true
@@ -25,7 +26,7 @@ echo "==> Building test stack..."
 docker compose -f "$COMPOSE" build --quiet
 
 echo "==> Starting services..."
-docker compose -f "$COMPOSE" up -d --remove-orphans production defaults configured mounted recursive
+docker compose -f "$COMPOSE" up -d --remove-orphans production defaults configured mounted recursive runtime
 
 echo "==> Running tests..."
 EXIT=0

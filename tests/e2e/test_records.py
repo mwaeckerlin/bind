@@ -39,7 +39,8 @@ def test_domain_address(domain):
 
 @pytest.mark.parametrize("domain", PRODUCTION_DOMAINS, ids=str)
 def test_domain_name_server(domain):
-    assert records(PRODUCTION, domain.name, "NS") == [f"{domain.name}."]
+    nameserver = CONFIG["NAMESERVER"] or domain.name
+    assert records(PRODUCTION, domain.name, "NS") == [f"{nameserver}."]
 
 
 @pytest.mark.parametrize("domain", PRODUCTION_DOMAINS, ids=str)
@@ -47,7 +48,8 @@ def test_domain_start_of_authority(domain):
     answer = records(PRODUCTION, domain.name, "SOA")
     assert len(answer) == 1
     server, mailbox, serial, refresh, retry, expire, negative = answer[0].split()
-    assert (server, mailbox) == (f"{domain.name}.", f"root.{domain.name}.")
+    hostmaster = CONFIG["HOSTMASTER"] or f"root.{domain.name}"
+    assert (server, mailbox) == (f"{domain.name}.", f"{hostmaster}.")
     assert (refresh, retry, expire, negative) == times()
     assert CONFIG["SERIAL"] in ("", serial)
 

@@ -63,6 +63,22 @@ if [[ -f FEATURES.md && -f TESTS.md ]]; then
     fi
 fi
 
+# every variable the init reads is a build argument, is handed over by
+# generate-configuration.sh and is documented in the README
+VARIABLES=$(sed -n '/^const std::vector<std::string> VARIABLES/,/};/p' init.cpp | grep -oE '"[A-Z_0-9]+"' | tr -d '"')
+if [[ -z "${VARIABLES}" ]]; then
+    _fail "variables_found" "no VARIABLES list in init.cpp"
+fi
+for v in ${VARIABLES}; do
+    grep -qx "ARG ${v}" Dockerfile || _fail "build_argument_${v}" "no ARG ${v} in Dockerfile"
+    grep -qw "${v}" generate-configuration.sh || _fail "handed_over_${v}" "generate-configuration.sh does not export ${v}"
+    if grep -q "^- \`${v}\`:" README.md; then
+        _pass "documented_${v}"
+    else
+        _fail "documented_${v}" "README.md has no entry for ${v}"
+    fi
+done
+
 SKIPS=$(grep -rnE 'pytest\.mark\.skip|skipif|xfail|pytest\.skip\(' tests/e2e --include='*.py' 2>/dev/null)
 if [[ -n "${SKIPS}" ]]; then
     _fail "no_skipped_tests" "skip/xfail markers found: ${SKIPS}"
